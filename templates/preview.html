@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Preview - {{ file.original_filename }} - Smart File Storage{% endblock %}
+
+{% block extra_css %}
+<!-- PDF.js CSS if needed -->
+<style>
+    #pdf-viewer canvas {
+        width: 100%;
+        height: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Preview: {{ file.original_filename }}</li>
+        </ol>
+    </nav>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-eye me-2"></i> Preview
+                    </h5>
+                    <div>
+                        <a href="{{ url_for('file_details', file_id=file.id) }}" class="btn btn-sm btn-outline-secondary me-1">
+                            <i class="bi bi-info-circle"></i> Details
+                        </a>
+                        <a href="{{ url_for('download_file', file_id=file.id) }}" class="btn btn-sm btn-primary">
+                            <i class="bi bi-download"></i> Download
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="preview-container">
+                        {% if preview_type == 'pdf' %}
+                        <div id="pdf-viewer" data-pdf-url="{{ url_for('raw_file', file_id=file.id) }}">
+                            <div class="loading-spinner" id="pdf-loading">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="pdf-nav" class="p-3 d-none">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <button id="pdf-prev" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-chevron-left"></i> Previous
+                                </button>
+                                <div class="d-flex align-items-center">
+                                    <span>Page</span>
+                                    <input type="number" id="pdf-page-num" class="form-control form-control-sm mx-2" style="width: 60px;" min="1">
+                                    <span>of <span id="pdf-page-count"></span></span>
+                                </div>
+                                <button id="pdf-next" class="btn btn-sm btn-outline-secondary">
+                                    Next <i class="bi bi-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% elif preview_type == 'image' %}
+                        <div id="image-viewer" data-image-url="{{ url_for('raw_file', file_id=file.id) }}" class="p-3 text-center"></div>
+                        {% elif preview_type == 'text' %}
+                        <div id="text-preview" data-text-content="{{ preview_data }}" data-file-type="{{ file.file_type }}" class="p-3">
+                            <pre>{{ preview_data }}</pre>
+                        </div>
+                        {% else %}
+                        <div class="p-4 text-center">
+                            <i class="bi bi-file-earmark display-1 text-secondary mb-3"></i>
+                            <h4>Preview not available</h4>
+                            <p class="text-muted">This file type ({{ file.file_type }}) cannot be previewed in the browser.</p>
+                            <a href="{{ url_for('download_file', file_id=file.id) }}" class="btn btn-primary mt-2">
+                                <i class="bi bi-download"></i> Download File
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle me-2"></i> File Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6>{{ file.original_filename }}</h6>
+                        <div class="d-flex align-items-center mt-2">
+                            <span class="badge bg-primary me-2">{{ file.file_type.upper() }}</span>
+                            <small class="text-muted">{{ file.file_size|filesizeformat }}</small>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="mb-3">
+                        <small class="text-muted d-block mb-1">Uploaded on</small>
+                        <div>{{ file.upload_date.strftime('%B %d, %Y at %H:%M') }}</div>
+                    </div>
+                    
+                    {% if file.file_meta %}
+                    <hr>
+                    
+                    <div class="mb-3">
+                        <small class="text-muted d-block mb-1">AI-Generated Tags</small>
+                        <div>
+                            {% if file.file_meta.ai_tags %}
+                                {% for tag in file.file_meta.ai_tags.split(', ') %}
+                                <span class="badge bg-info text-dark me-1 mb-1">{{ tag }}</span>
+                                {% endfor %}
+                            {% else %}
+                            <span class="fst-italic text-muted">No tags generated yet</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if file.file_meta.ai_summary %}
+                    <hr>
+                    
+                    <div class="mb-3">
+                        <small class="text-muted d-block mb-1">AI Summary</small>
+                        <p class="small">{{ file.file_meta.ai_summary }}</p>
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                    
+                    <hr>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('download_file', file_id=file.id) }}" class="btn btn-primary">
+                            <i class="bi bi-download"></i> Download File
+                        </a>
+                        <button type="button" class="btn btn-outline-danger" onclick="confirmDelete({{ file.id }}, '{{ file.original_filename }}')">
+                            <i class="bi bi-trash"></i> Delete File
+                        </button>
+                        <form id="delete-form-{{ file.id }}" action="{{ url_for('delete_file', file_id=file.id) }}" method="post" class="d-none"></form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- PDF.js for PDF preview -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.min.js"></script>
+<script>
+    // Set worker source
+    if (typeof pdfjsLib !== 'undefined') {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.worker.min.js';
+    }
+</script>
+
+<!-- Preview JS -->
+<script src="{{ url_for('static', filename='js/preview.js') }}"></script>
+{% endblock %}

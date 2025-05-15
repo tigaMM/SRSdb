@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Smart File Storage - Welcome{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row align-items-center py-5">
+        <div class="col-md-6 mb-4 mb-md-0">
+            <h1 class="display-4 fw-bold">Smart File Storage</h1>
+            <p class="lead">Organize, store, and intelligently manage your files with AI-powered insights.</p>
+            <p class="text-muted">Upload documents, images, and more to your personal cloud storage. Our AI will automatically extract useful information and make your files easily searchable.</p>
+            <div class="mt-4">
+                <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Get Started</a>
+                <a href="{{ url_for('login') }}" class="btn btn-outline-secondary btn-lg ms-2">Login</a>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-4">
+                    <img src="https://pixabay.com/get/g27521c7a05c557d8bb998c86e5b208fd2aedda2122d4afe0d4724fddc5b4bc4fc9228320d4676887e30c505e033363d230f22238f33fd82703796ce7c826a85f_1280.jpg" alt="File Storage Concept" class="img-fluid rounded">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <hr class="my-5">
+    
+    <!-- Features Section -->
+    <div class="row g-4 py-5">
+        <div class="col-12 text-center mb-4">
+            <h2 class="fw-bold">Key Features</h2>
+            <p class="text-muted">Our smart storage solution comes with powerful features</p>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-primary bg-opacity-10 text-primary p-3 rounded-circle mb-3 mx-auto" style="width: 3rem; height: 3rem;">
+                        <i class="bi bi-cloud-upload fs-4"></i>
+                    </div>
+                    <h3 class="fw-semibold">Easy Upload</h3>
+                    <p class="text-muted">Upload files from your device with a simple drag-and-drop interface or file browser.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-success bg-opacity-10 text-success p-3 rounded-circle mb-3 mx-auto" style="width: 3rem; height: 3rem;">
+                        <i class="bi bi-search fs-4"></i>
+                    </div>
+                    <h3 class="fw-semibold">Smart Search</h3>
+                    <p class="text-muted">Find your files quickly with our powerful search that looks inside your documents.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-info bg-opacity-10 text-info p-3 rounded-circle mb-3 mx-auto" style="width: 3rem; height: 3rem;">
+                        <i class="bi bi-robot fs-4"></i>
+                    </div>
+                    <h3 class="fw-semibold">AI-Powered</h3>
+                    <p class="text-muted">Our AI analyzes your files to extract meaningful metadata and organize content.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <hr class="my-5">
+    
+    <!-- Preview Section -->
+    <div class="row py-5">
+        <div class="col-12 text-center mb-5">
+            <h2 class="fw-bold">Powerful File Preview</h2>
+            <p class="text-muted">Preview documents, images, and more directly in your browser</p>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card overflow-hidden shadow-lg border-0">
+                <img src="https://pixabay.com/get/g634d9024eb731eb1329573791ddfa2d1244598305a031e3392f128f0f0a13ce09c42a3cb32b827601dbad0debb5a4906dbb16faafa9b07cab0359f1a80a159ff_1280.jpg" alt="Document Preview" class="card-img-top">
+                <div class="card-body">
+                    <h5 class="card-title">High-Quality Document Previews</h5>
+                    <p class="card-text">View PDFs, documents, and presentations without downloading.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card overflow-hidden shadow-lg border-0">
+                <img src="https://pixabay.com/get/g6416e0b6530cfd783ccabac85af42d884b2e2a0162f309934965adb582dc905ab29e7385946656aeee1f2f81eddd8bec83b82a810165c5eaa22ceac7a6bd936d_1280.jpg" alt="AI Analysis" class="card-img-top">
+                <div class="card-body">
+                    <h5 class="card-title">AI Metadata Extraction</h5>
+                    <p class="card-text">Our AI extracts key information, tags, and summaries from your files.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mobile-Friendly Section -->
+    <div class="row py-5 align-items-center">
+        <div class="col-md-6 order-md-2 mb-4 mb-md-0">
+            <h2 class="fw-bold">Access Anywhere</h2>
+            <p class="lead">Optimized for mobile devices</p>
+            <p class="text-muted">Our application is fully responsive and works perfectly on your phone through a web browser or Termux. Access your files wherever you are.</p>
+            <ul class="list-unstyled">
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Fully responsive design</li>
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Fast loading on mobile connections</li>
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Touch-optimized interfaces</li>
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Runs perfectly on Termux</li>
+            </ul>
+        </div>
+        <div class="col-md-6 order-md-1">
+            <div class="card shadow-lg border-0 overflow-hidden">
+                <img src="https://pixabay.com/get/g579058578d93909c3bcdffcd42cc1cbb4866c166857be1896efa889e03094a3cc9d515d14092b78c43f9b050c135d1946cbe53b471290ea450e911e7ff04ae83_1280.jpg" alt="Mobile Storage" class="img-fluid rounded">
+            </div>
+        </div>
+    </div>
+    
+    <!-- CTA Section -->
+    <div class="row py-5 my-5">
+        <div class="col-12 text-center">
+            <div class="card bg-primary text-white shadow-lg border-0">
+                <div class="card-body p-5">
+                    <h2 class="display-6 fw-bold mb-3">Ready to get started?</h2>
+                    <p class="lead mb-4">Create your free account and start organizing your files today!</p>
+                    <a href="{{ url_for('register') }}" class="btn btn-light btn-lg px-4 py-2">Sign Up Now</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="{{ request.cookies.get('theme', 'dark') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Smart File Storage{% endblock %}</title>
+    
+    <!-- Bootstrap CSS from CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="bi bi-folder2-open"></i> Smart File Storage
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
+                            <i class="bi bi-grid"></i> Dashboard
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+                
+                {% if current_user.is_authenticated %}
+                <!-- Search Form -->
+                <form class="d-flex search-form me-3" id="search-form" action="{{ url_for('search_files') }}" method="get">
+                    <div class="input-group">
+                        <input class="form-control" type="search" id="search-input" name="q" placeholder="Search files..." aria-label="Search" value="{{ search_query|default('', true) }}">
+                        <button class="btn btn-outline-secondary search-clear d-none" id="search-clear" type="button">
+                            <i class="bi bi-x"></i>
+                        </button>
+                        <button class="btn btn-outline-primary" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- User Menu -->
+                <div class="dropdown">
+                    <button class="btn btn-dark dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle"></i> 
+                        {{ current_user.username }}
+                        {% if current_user.is_admin %}
+                        <span class="badge bg-danger">Admin</span>
+                        {% elif current_user.is_guest %}
+                        <span class="badge bg-info">Guest</span>
+                        {% endif %}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                        <li>
+                            <span class="dropdown-item-text text-muted small">
+                                <i class="bi bi-envelope"></i> {{ current_user.email }}
+                            </span>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <button class="dropdown-item" id="theme-toggle">
+                                {% if request.cookies.get('theme') == 'light' %}
+                                <i class="bi bi-moon"></i> Dark Mode
+                                {% else %}
+                                <i class="bi bi-sun"></i> Light Mode
+                                {% endif %}
+                            </button>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="{{ url_for('logout') }}">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                {% else %}
+                <div class="d-flex">
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-light me-2">Login</a>
+                    <a href="{{ url_for('register') }}" class="btn btn-primary">Register</a>
+                    <button class="btn btn-dark ms-2" id="theme-toggle">
+                        {% if request.cookies.get('theme') == 'light' %}
+                        <i class="bi bi-moon"></i>
+                        {% else %}
+                        <i class="bi bi-sun"></i>
+                        {% endif %}
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+    
+    <!-- Main Content -->
+    <main class="py-4">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="py-3 border-top mt-auto">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted">&copy; 2023 Smart File Storage</span>
+                </div>
+                <div class="text-muted">
+                    <small>Powered by AI</small>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Main App JavaScript -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

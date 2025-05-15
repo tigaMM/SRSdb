@@ -1,0 +1,236 @@
+/* Custom styles for Smart File Storage app */
+
+/* General Styles */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bs-body-bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--bs-secondary);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--bs-primary);
+}
+
+/* File Cards */
+.file-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    height: 100%;
+}
+
+.file-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.file-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.file-type-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.file-thumbnail {
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 0.25rem 0.25rem 0 0;
+    background-color: var(--bs-light);
+}
+
+.file-thumbnail img {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+.file-meta {
+    font-size: 0.85rem;
+    color: var(--bs-secondary-color);
+}
+
+/* File Upload Area */
+.upload-area {
+    border: 2px dashed var(--bs-border-color);
+    border-radius: 0.5rem;
+    padding: 2rem;
+    text-align: center;
+    transition: border-color 0.2s;
+}
+
+.upload-area:hover, .upload-area.dragover {
+    border-color: var(--bs-primary);
+}
+
+.upload-progress {
+    height: 5px;
+}
+
+/* Dashboard sections */
+.dashboard-section {
+    margin-bottom: 2.5rem;
+}
+
+/* Category Cards */
+.category-card {
+    transition: transform 0.2s;
+    cursor: pointer;
+}
+
+.category-card:hover {
+    transform: scale(1.02);
+}
+
+.category-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Search bar */
+.search-form {
+    position: relative;
+}
+
+.search-clear {
+    position: absolute;
+    right: 3.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    color: var(--bs-secondary-color);
+    cursor: pointer;
+}
+
+/* Preview page styles */
+.preview-container {
+    min-height: 400px;
+    background-color: var(--bs-light);
+    border-radius: 0.5rem;
+}
+
+#pdf-viewer, #image-viewer, #text-preview {
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+#pdf-nav {
+    border-top: 1px solid var(--bs-border-color);
+    padding-top: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+/* Metadata section */
+.metadata-section {
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.metadata-label {
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: var(--bs-secondary-color);
+}
+
+.metadata-value {
+    font-size: 0.9rem;
+}
+
+/* AI Tags */
+.ai-tag {
+    font-size: 0.85rem;
+    background-color: rgba(var(--bs-info-rgb), 0.1);
+    color: var(--bs-info);
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+    display: inline-block;
+}
+
+/* Loading spinner */
+.loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 767px) {
+    .navbar-brand {
+        font-size: 1.2rem;
+    }
+    
+    .file-thumbnail {
+        height: 100px;
+    }
+    
+    .preview-container {
+        min-height: 300px;
+    }
+    
+    .file-card .card-title {
+        font-size: 1rem;
+    }
+    
+    .file-meta {
+        font-size: 0.75rem;
+    }
+}
+
+/* Dark mode specific adjustments */
+[data-bs-theme="dark"] .file-thumbnail {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-bs-theme="dark"] .upload-area {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Animation for Upload */
+@keyframes progress {
+    0% { width: 0%; }
+    100% { width: 100%; }
+}
+
+.upload-animate {
+    animation: progress 2s linear;
+}
+
+/* File type colors */
+.file-type-document { color: var(--bs-blue); }
+.file-type-spreadsheet { color: var(--bs-green); }
+.file-type-image { color: var(--bs-purple); }
+.file-type-pdf { color: var(--bs-danger); }
+.file-type-code { color: var(--bs-warning); }
+.file-type-archive { color: var(--bs-info); }
+.file-type-other { color: var(--bs-secondary); }

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ file.original_filename }} - SmartFileVault</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PDF.js untuk preview PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.min.js"></script>
+    <script>
+        // PDF.js worker
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.worker.min.js';
+        }
+    </script>
+    <style>
+        /* Gaya untuk preview file PDF */
+        #pdf-container {
+            height: 75vh;
+        }
+        
+        #pdf-canvas {
+            display: block;
+            margin: 0 auto;
+        }
+        
+        /* Gaya untuk preview file gambar */
+        .image-preview {
+            max-height: 75vh;
+            object-fit: contain;
+        }
+        
+        /* Gaya untuk preview teks */
+        .text-preview {
+            max-height: 75vh;
+            overflow-y: auto;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white dark:bg-gray-800 shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <a href="{{ url_for('index') }}" class="flex items-center text-gray-900 dark:text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 100-4 2 2 0 000 4zm0 0v10a2 2 0 002 2h10a2 2 0 002-2V8m-14 0h14" />
+                        </svg>
+                        <h1 class="ml-2 text-xl font-semibold">SmartFileVault</h1>
+                    </a>
+                </div>
+                <div>
+                    <a href="{{ url_for('index') }}" class="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
+                        ← Kembali ke Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="mb-4 p-4 {% if category == 'danger' %}bg-red-100 text-red-700 border-red-200{% elif category == 'success' %}bg-green-100 text-green-700 border-green-200{% elif category == 'warning' %}bg-yellow-100 text-yellow-700 border-yellow-200{% else %}bg-blue-100 text-blue-700 border-blue-200{% endif %} rounded-md border">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- File Preview Section -->
+            <div class="lg:col-span-3">
+                <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+                    <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                        <h2 class="text-lg font-medium text-gray-900 dark:text-white">Preview: {{ file.original_filename }}</h2>
+                        <a href="{{ url_for('download_file', filename=file.filename) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="-ml-0.5 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Download
+                        </a>
+                    </div>
+                    <div class="p-4">
+                        {% if preview.type == 'image' %}
+                            <div class="flex justify-center">
+                                <img src="{{ url_for('static', filename='uploads/' + file.filename) }}" alt="{{ file.original_filename }}" class="image-preview rounded-md">
+                            </div>
+                        {% elif preview.type == 'pdf' %}
+                            <div id="pdf-container" class="relative border rounded-md">
+                                <div id="pdf-loader" class="absolute inset-0 flex items-center justify-center">
+                                    <div class="flex flex-col items-center">
+                                        <svg class="animate-spin h-10 w-10 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        <p class="mt-2 text-gray-600 dark:text-gray-400">Memuat PDF...</p>
+                                    </div>
+                                </div>
+                                <canvas id="pdf-canvas"></canvas>
+                                
+                                <div class="py-3 px-4 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                                    <button id="prev-page" class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                        ← Sebelumnya
+                                    </button>
+                                    <div class="text-sm text-gray-700 dark:text-gray-200">
+                                        Halaman <span id="current-page">0</span> dari <span id="total-pages">0</span>
+                                    </div>
+                                    <button id="next-page" class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                        Selanjutnya →
+                                    </button>
+                                </div>
+                            </div>
+                        {% elif preview.type == 'text' %}
+                            <div class="text-preview border rounded-md p-4 text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-900">
+                                {{ preview.content }}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-12">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Preview tidak tersedia</h3>
+                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Tipe file ini tidak mendukung preview di browser.</p>
+                                <div class="mt-6">
+                                    <a href="{{ url_for('download_file', filename=file.filename) }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                        <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                        </svg>
+                                        Download File
+                                    </a>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- File Information Section -->
+            <div class="lg:col-span-1">
+                <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Informasi File</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400">Nama File</h4>
+                            <p class="mt-1 text-sm text-gray-900 dark:text-white break-all">{{ file.original_filename }}</p>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400">Tipe File</h4>
+                            <p class="mt-1 text-sm text-gray-900 dark:text-white">{{ file.file_type|upper }}</p>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400">Ukuran</h4>
+                            <p class="mt-1 text-sm text-gray-900 dark:text-white">{{ file.formatted_size }}</p>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400">Diunggah</h4>
+                            <p class="mt-1 text-sm text-gray-900 dark:text-white">{{ file.created_at.split('T')[0] if file.created_at else 'N/A' }}</p>
+                        </div>
+                        
+                        {% if file.width and file.height %}
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400">Dimensi</h4>
+                            <p class="mt-1 text-sm text-gray-900 dark:text-white">{{ file.width }} × {{ file.height }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        {% if file.word_count %}
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400">Jumlah Kata</h4>
+                            <p class="mt-1 text-sm text-gray-900 dark:text-white">{{ file.word_count }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if file.summary %}
+                    <div class="mt-6">
+                        <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400">Ringkasan AI</h4>
+                        <div class="mt-2 text-sm text-gray-700 dark:text-gray-300 p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
+                            {{ file.summary }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if file.keywords %}
+                    <div class="mt-6">
+                        <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400">Kata Kunci</h4>
+                        <div class="mt-2 flex flex-wrap gap-2">
+                            {% for keyword in file.keywords.split(',') %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100">
+                                {{ keyword }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                        <div class="flex justify-between space-x-3">
+                            <a href="{{ url_for('download_file', filename=file.filename) }}" class="flex-1 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                                Download
+                            </a>
+                            <button 
+                                onclick="if(confirm('Yakin ingin menghapus file ini?')) document.getElementById('delete-form').submit();" 
+                                class="flex-1 inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-red-700 dark:text-red-400 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Hapus
+                            </button>
+                            <form id="delete-form" method="POST" action="{{ url_for('delete_file', filename=file.filename) }}" class="hidden"></form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- PDF.js Script for PDF preview -->
+    {% if preview.type == 'pdf' %}
+    <script>
+        // Inisialisasi PDF viewer
+        let pdfDoc = null;
+        let pageNum = 1;
+        let pageRendering = false;
+        let pageNumPending = null;
+        const canvas = document.getElementById('pdf-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Tombol navigasi halaman
+        const prevButton = document.getElementById('prev-page');
+        const nextButton = document.getElementById('next-page');
+        const currentPageElement = document.getElementById('current-page');
+        const totalPagesElement = document.getElementById('total-pages');
+        
+        // Load PDF
+        pdfjsLib.getDocument('{{ url_for("static", filename="uploads/" + file.filename) }}').promise.then(function(pdf) {
+            pdfDoc = pdf;
+            totalPagesElement.textContent = pdf.numPages;
+            
+            // Sembunyikan loader saat PDF berhasil dimuat
+            document.getElementById('pdf-loader').style.display = 'none';
+            
+            // Render halaman pertama
+            renderPage(pageNum);
+        }).catch(function(error) {
+            document.getElementById('pdf-loader').innerHTML = 
+                '<div class="text-center"><p class="text-red-600">Gagal memuat file PDF: ' + error.message + '</p></div>';
+        });
+        
+        // Render halaman
+        function renderPage(num) {
+            pageRendering = true;
+            
+            // Perbarui nomor halaman saat ini
+            currentPageElement.textContent = num;
+            
+            // Dapatkan halaman
+            pdfDoc.getPage(num).then(function(page) {
+                // Sesuaikan ukuran canvas dengan halaman PDF
+                const viewport = page.getViewport({scale: 1.0});
+                const container = document.getElementById('pdf-container');
+                const containerWidth = container.clientWidth - 20; // Padding
+                
+                // Skala berdasarkan lebar container
+                const scale = containerWidth / viewport.width;
+                const scaledViewport = page.getViewport({scale: scale});
+                
+                canvas.height = scaledViewport.height;
+                canvas.width = scaledViewport.width;
+                
+                // Render PDF ke canvas
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: scaledViewport
+                };
+                
+                const renderTask = page.render(renderContext);
+                
+                // Wait for rendering to finish
+                renderTask.promise.then(function() {
+                    pageRendering = false;
+                    
+                    if (pageNumPending !== null) {
+                        // New page rendering is pending
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+            });
+        }
+        
+        // Fungsi untuk mengubah halaman
+        function queueRenderPage(num) {
+            if (pageRendering) {
+                pageNumPending = num;
+            } else {
+                renderPage(num);
+            }
+        }
+        
+        // Navigasi ke halaman sebelumnya
+        prevButton.addEventListener('click', function() {
+            if (pageNum <= 1) return;
+            pageNum--;
+            queueRenderPage(pageNum);
+        });
+        
+        // Navigasi ke halaman berikutnya
+        nextButton.addEventListener('click', function() {
+            if (pageNum >= pdfDoc.numPages) return;
+            pageNum++;
+            queueRenderPage(pageNum);
+        });
+    </script>
+    {% endif %}
+</body>
+</html>

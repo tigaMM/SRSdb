@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}{{ file.original_filename }} - Smart File Storage{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">File Details</li>
+        </ol>
+    </nav>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ file.original_filename }}</h5>
+                    <div>
+                        <a href="{{ url_for('preview_file', file_id=file.id) }}" class="btn btn-sm btn-outline-primary me-1">
+                            <i class="bi bi-eye"></i> Preview
+                        </a>
+                        <a href="{{ url_for('download_file', file_id=file.id) }}" class="btn btn-sm btn-success">
+                            <i class="bi bi-download"></i> Download
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <!-- File Preview Section -->
+                    <div class="mb-4">
+                        <h6 class="mb-3">Preview</h6>
+                        <div class="preview-container p-3 text-center border rounded bg-light mb-3">
+                            {% if preview_type == 'image' %}
+                            <img src="{{ preview_data }}" alt="{{ file.original_filename }}" class="img-fluid rounded">
+                            {% elif preview_type == 'pdf' %}
+                            <div class="d-flex flex-column align-items-center">
+                                <i class="bi bi-file-pdf display-1 text-danger"></i>
+                                <p class="mt-2">PDF Document</p>
+                                <a href="{{ url_for('preview_file', file_id=file.id) }}" class="btn btn-sm btn-outline-primary">
+                                    Open PDF Viewer
+                                </a>
+                            </div>
+                            {% elif preview_type == 'text' %}
+                            <div class="text-start overflow-auto" style="max-height: 300px; white-space: pre-wrap;">{{ preview_data }}</div>
+                            {% else %}
+                            <div class="d-flex flex-column align-items-center">
+                                <i class="bi bi-file-earmark display-1 text-secondary"></i>
+                                <p class="mt-2">{{ file.file_type.upper() }} File</p>
+                                <div class="d-flex">
+                                    <a href="{{ url_for('preview_file', file_id=file.id) }}" class="btn btn-sm btn-outline-primary me-2">
+                                        Try Preview
+                                    </a>
+                                    <a href="{{ url_for('download_file', file_id=file.id) }}" class="btn btn-sm btn-outline-success">
+                                        Download
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- File Info Table -->
+                    <div class="mb-4">
+                        <h6 class="mb-3">File Information</h6>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <tbody>
+                                    <tr>
+                                        <th scope="row" style="width: 30%">Filename</th>
+                                        <td>{{ file.original_filename }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">File Type</th>
+                                        <td>{{ file.file_type.upper() }} ({{ file.mime_type }})</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Size</th>
+                                        <td>{{ file.file_size|filesizeformat }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Upload Date</th>
+                                        <td>{{ file.upload_date.strftime('%B %d, %Y at %H:%M') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Last Accessed</th>
+                                        <td>{{ file.last_accessed.strftime('%B %d, %Y at %H:%M') if file.last_accessed else 'Never' }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- AI Metadata Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-robot me-2"></i> AI-Extracted Metadata
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if file.file_meta and file.file_meta.ai_processed %}
+                    <!-- AI Tags -->
+                    <div class="mb-3">
+                        <div class="metadata-label">Tags</div>
+                        <div class="mt-2">
+                            {% if file.file_meta.ai_tags %}
+                                {% for tag in file.file_meta.ai_tags.split(', ') %}
+                                    <span class="ai-tag">{{ tag }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-muted">No tags found</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- AI Summary -->
+                    <div class="mb-3">
+                        <div class="metadata-label">Summary</div>
+                        <div class="metadata-value mt-2">
+                            {% if file.file_meta.ai_summary %}
+                                {{ file.file_meta.ai_summary }}
+                            {% else %}
+                                <span class="text-muted">No summary available</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- File-specific metadata -->
+                    {% if file.file_type in ['pdf', 'doc', 'docx'] and file.file_meta.page_count %}
+                    <div class="mb-3">
+                        <div class="metadata-label">Document Information</div>
+                        <div class="metadata-value mt-2">
+                            <ul class="list-unstyled">
+                                {% if file.file_meta.page_count %}
+                                <li><i class="bi bi-file-earmark-text me-2"></i> {{ file.file_meta.page_count }} pages</li>
+                                {% endif %}
+                                {% if file.file_meta.author %}
+                                <li><i class="bi bi-person me-2"></i> Author: {{ file.file_meta.author }}</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if file.file_type in ['jpg', 'jpeg', 'png', 'gif', 'bmp'] %}
+                    <div class="mb-3">
+                        <div class="metadata-label">Image Information</div>
+                        <div class="metadata-value mt-2">
+                            <ul class="list-unstyled">
+                                {% if file.file_meta.width and file.file_meta.height %}
+                                <li><i class="bi bi-aspect-ratio me-2"></i> {{ file.file_meta.width }} × {{ file.file_meta.height }} pixels</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if file.file_meta.keywords %}
+                    <div class="mb-3">
+                        <div class="metadata-label">Keywords</div>
+                        <div class="metadata-value mt-2">
+                            {{ file.file_meta.keywords }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% else %}
+                    <div class="text-center py-4">
+                        {% if not file.file_meta %}
+                        <i class="bi bi-robot display-4 text-secondary mb-3"></i>
+                        <h6>Metadata not available</h6>
+                        <p class="text-muted small">This file does not have any associated metadata.</p>
+                        {% else %}
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h6>Processing with AI</h6>
+                        <p class="text-muted small">The AI is analyzing your file to extract useful information.</p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Actions Card -->
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('preview_file', file_id=file.id) }}" class="btn btn-outline-primary">
+                            <i class="bi bi-eye"></i> Open Preview
+                        </a>
+                        <a href="{{ url_for('download_file', file_id=file.id) }}" class="btn btn-success">
+                            <i class="bi bi-download"></i> Download File
+                        </a>
+                        <button type="button" class="btn btn-danger" onclick="confirmDelete({{ file.id }}, '{{ file.original_filename }}')">
+                            <i class="bi bi-trash"></i> Delete File
+                        </button>
+                        <form id="delete-form-{{ file.id }}" action="{{ url_for('delete_file', file_id=file.id) }}" method="post" class="d-none"></form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
